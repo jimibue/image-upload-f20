@@ -45,7 +45,22 @@ const AuthProvider = (props) => {
     } catch (err) {
       // redo error handling
       // err.response.data.errors.full_messages is an array
-      setAuthErrors(err.response.data.errors.full_messages);
+      // need to check err object
+      if (err.response) {
+        if (
+          err.response.data.errors &&
+          err.response.data.errors.full_messages
+        ) {
+          setAuthErrors(err.response.data.errors.full_messages);
+        } else if (err.response.data.errors) {
+          setAuthErrors(err.response.data.errors);
+        } else if (err.response.statusText) {
+          setAuthErrors([err.response.statusText]);
+        } else {
+          setAuthErrors(["Unknown error "]);
+        }
+      }
+
       // alert(err); should avoid alerts in production bad UX
     } finally {
       setAuthLoading(false);
@@ -62,7 +77,10 @@ const AuthProvider = (props) => {
       setUser(res.data.data);
       history.push("/");
     } catch (err) {
+      // this might cause an error too
+      // https://trello.com/c/BQ9MfJob/10-thing-is-broke
       setAuthErrors(err.response.data.errors);
+      // TODO: check error handling here as well
       // you can't be sure what this will look like
     } finally {
       setAuthLoading(false);
